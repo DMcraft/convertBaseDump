@@ -9,20 +9,25 @@
 
 import re
 import argparse
+import sys
+
 
 # Функция для обработки текста
 def process_text(text):
     # Регулярное выражение для поиска строк в кавычках
     pattern = r"'(.*?)'"
 
-    # Функция для замены строк, содержащих более 5 символов
+    # Функция для замены строк
     def replace_long_string(match):
         string = match.group(1)
         utf8_bytes = string.encode('windows-1251')
         try:
             windows_1251_string = utf8_bytes.decode('utf-8')
-        except Exception as e:
+        except UnicodeDecodeError:
             windows_1251_string = string
+        except Exception as e:
+            print(f'Ошибка выполнения {e}')
+            sys.exit(1)
 
         return f"'{windows_1251_string}'"
 
@@ -51,14 +56,10 @@ def main():
     parser = argparse.ArgumentParser(description="Перекодировка дампа SQL со смешенными кодировками.")
     parser.add_argument('input_file', help="Имя входного файла")
     parser.add_argument('output_file', help="Имя выходного файла")
-    # parser.add_argument('-ie', '--input_encoding', default='windows-1251',
-    #                     help="Кодировка входного файла (по умолчанию: windows-1251)")
-    # parser.add_argument('-oe', '--output_encoding', default='utf-8',
-    #                     help="Кодировка выходного файла (по умолчанию: utf-8)")
     args = parser.parse_args()
 
     # Вызов функции перекодировки
-    convert_encoding(args.input_file, args.output_file, args.input_encoding, args.output_encoding)
+    convert_encoding(args.input_file, args.output_file)
 
 if __name__ == "__main__":
     main()
